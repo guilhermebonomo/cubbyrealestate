@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador Cubby</title>
+    <style>
+      :root {
+        --primaria: #3498db;
+        --secundaria: #000;
+        --velocidade-animacao: 1.5s;
+      }
+      * {
+        font-family: Poppins, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+        align-items: center;
+        align-content: center;
+        flex-direction: column;
+      }
+      a,
+      a:visited {
+        text-decoration: none;
+      }
+      .container-simulador {
+        margin-inline: 0;
+        margin-block: 64px;
+        width: 100%;
+        padding: 0;
+        height: 100%;
+      }
+      .simulador-wrapper {
+        background: rgba(235, 235, 235, 1);
+        width: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        justify-content: center;
+        align-self: center;
+      }
+      .simulador {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #contrato option {
+        font-weight: 400;
+        font-size: 1.15rem;
+      }
+      /* Media Query */
+      @media (max-width: 360px) {
+        #container-simulador {
+          width: 100%;
+        }
+        .simulador-wrapper {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          padding: 0;
+        }
+        .simulador {
+          width: 100%;
+          max-width: 600px;
+          padding: 15px 0 15px 0;
+        }
+        .switches {
+          display: block;
+          gap: 15px;
+          justify-content: center;
+          align-items: center;
+        }
+        .switches .switch {
+          width: 100%;
+          margin-block: 10px;
+        }
+      }
+      .investimento {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+        gap: 25px;
+        padding: 1rem;
+        /* flex-grow: 1; */
+      }
+      .slider-investimento {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .slider-investimento input {
+        width: 100%;
+        height: 20px;
+        background-color: #ccc;
+        border-radius: 5px;
+      }
+      .campos {
+        position: relative;
+        display: flex;
+        background: white;
+        padding-block: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 400;
+        font-size: 1.15rem;
+        align-items: center;
+        padding-inline: 20px 5px;
+        max-width: fit-content;
+      }
+      #valor-investimento {
+        width: 180px;
+      }
+      .slider-investimento output {
+        font-size: 16px;
+      }
+      .slider-prazo {
+        display: block;
+      }
+      .investimento {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .comparativo {
+        display: flex;
+        align-items: flex-end;
+        align-content: flex-end;
+        font-weight: 600;
+        padding: 1rem;
+      }
+      .comparativo span {
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .resultado {
+        flex-direction: column;
+        display: none;
+        background: white;
+        width: calc(100% - 30px);
+        position: absolute;
+        top: 0;
+        padding: 15px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+        align-self: center;
+        justify-self: center;
+        justify-content: space-evenly;
+        gap: 15px;
+        transition: all 500ms ease-out forwards;
+      }
+      .resultados-topo {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        width: 100%;
+        gap: 10px;
+        padding: 0;
+        justify-content: space-between;
+        /* flex-grow: 1; */
+      }
+      .resultados-topo div {
+        padding-block: 10px;
+        padding-top: 0;
+        background: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .resultados-topo div .titulo {
+        background: #666666;
+        text-align: center;
+        font-weight: 400;
+        color: white;
+        padding: 5px;
+      }
+      .resultados-topo div .saida {
+        text-align: center;
+        color: var(--secundaria);
+        font-weight: 600;
+      }
+      .tabela {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-row-gap: 10px;
+        width: 100%;
+      }
+      .rendimento-final {
+        display: flex;
+        flex-direction: column;
+      }
+      .resultado p {
+        font-size: 0.6rem;
+        color: #999999;
+        text-align: justify;
+        letter-spacing: -0.5px;
+        padding-inline: 5px;
+      }
+      .resultado h3 {
+        text-align: center;
+        font-size: 1.2rem;
+        padding-inline: 5px;
+      }
+      .btn-boxes {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.8em;
+        justify-content: space-between;
+      }
+      #btn-simular {
+        background-image: linear-gradient(
+          to right,
+          rgb(150, 9, 9),
+          rgb(228, 11, 11)
+        );
+        cursor: pointer;
+        color: #fff;
+        border: none;
+      }
+      .btn-boxes.btn-final {
+        width: 150px;
+        /* height: 1.15rem; */
+        /* max-width: 175px; */
+        /* flex-grow: clamp(1, 2); */
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        /* width: 100%; */
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 10px;
+        text-align: center;
+        text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      }
+      .retorna {
+        background: #eee;
+        font-weight: 300;
+        font-size: 0.9rem;
+        color: #999;
+      }
+      #contatar {
+        background: #1fc75d;
+        color: white;
+        flex-grow: 1;
+        min-width: 150px;
+      }
+      .rendimento-mensal {
+        display: flex;
+        flex-direction: column;
+        /* gap: 10px;
+          margin: 10px; */
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+      }
+      button {
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        user-select: none;
+      }
+      buton * {
+        user-select: none;
+      }
+      .destaque {
+        color: #b90606;
+      }
+      .rendimento-total {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .novo-div {
+        color: black;
+      }
+      #calculo-mensal {
+        background-color: #e1e1e1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+      } /* 
+      .iframe {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      } */
+      .switches {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+      .switch {
+        background: white;
+        letter-spacing: -0.2px;
+      }
+      .switches .inativo {
+        color: #9aaab0;
+        font-weight: 400;
+      }
+      .switches .ativo {
+        border: none;
+        background: #919191;
+        color: #fff;
+        font-weight: 600;
+      }
+      .loader {
+        width: 100%;
+        height: 100%;
+        max-height: 700px;
+        background: white;
+        z-index: 99;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        animation: loading var(--velocidade-animacao) forwards;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+      }
+      @keyframes loading {
+        90% {
+          opacity: 1;
+          visibility: visible;
+        }
+        100% {
+          opacity: 0;
+          display: none;
+          visibility: hidden;
+        }
+      }
+      .loader svg {
+        animation: carregando calc(var(--velocidade-animacao) * 2) linear
+          forwards;
+      }
+      @keyframes carregando {
+        to {
+          transform: rotate(720deg);
+        }
+      }
+      .tabela-title {
+        font-weight: 400;
+        text-align: start;
+      }
+      .tabela-result {
+        text-align: right;
+        font-weight: 600;
+      }
+      .parcelas {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      @keyframes aumenta {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      .atualiza {
+        transform: translateX(-15px);
+      }
+      input[type='number'],
+      .mascara {
+        letter-spacing: 1px;
+      }
+      input[type='number']:focus {
+        outline: none !important;
+        border: none;
+      }
+      .campos input[type='number']:focus + .campos {
+        border: 1px solid #000 !important;
+      }
+
+      .mascara {
+        position: absolute;
+        top: 0;
+        background: white;
+        padding-top: 20px;
+        padding-bottom: 0;
+        /* pointer-events: none; */
+      }
+      .txt-minimo {
+        font-size: 0.7rem;
+      }
+    </style>
+  </head>
+  <body onload="simular()">
+    <div class="simulador-wrapper">
+      <div class="simulador">
+        <div class="investimento">
+          <h2>Simule seu investimento</h2>
+          <span>Valor do Investimento</span>
+          <div class="campos">
+            <span>R$</span>
+            <!-- inserir cifrao pontos e virgula -->
+            <div class="mascara" id="mascara"></div>
+            <div class="numeral">
+              <input
+                type="number"
+                id="valor-investimento"
+                min="20000"
+                step="10000"
+                value="20000"
+                style="
+                  border: none;
+                  background: transparent;
+                  font-size: inherit;
+                "
+              />
+            </div>
+            <button class="atualiza" id="btn-menos">-</button>
+            <button class="atualiza" id="btn-mais">+</button>
+          </div>
+          <div class="txt-minimo">
+            *Valor mínimo de investimento R$20.000,00
+          </div>
+          <span>Selecione o tipo de rentabilidade desejada.</span>
+          <!-- trocar para seleção box -->
+          <div class="switches">
+            <button
+              class="switch ativo"
+              id="switch-mensal"
+              onclick="contrato1()"
+            >
+              Receber Mensalmente
+            </button>
+            <button
+              class="switch inativo"
+              id="switch-total"
+              onclick="contrato2()"
+            >
+              Receber ao fim do contrato
+            </button>
+          </div>
+          <select id="contrato" class="campos" style="display: none">
+            <option value="1">Mensal</option>
+            <option value="2">Ao final do contrato</option>
+          </select>
+
+          <span>Selecione o prazo desejado para o investimento</span>
+          <div class="slider-prazo">
+            <select id="prazo" class="campos">
+              <option value="12">12 meses</option>
+              <option value="24">24 meses</option>
+              <option value="36">36 meses</option>
+            </select>
+
+            <output for="prazo" id="sai-prazo" style="display: none"></output>
+          </div>
+          <button type="submit" onclick="calcular()" id="btn-simular">
+            Simular Investimento
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="resultado" id="resultados">
+      <div class="loader">
+        <svg
+          height="100px"
+          width="100px"
+          version="1.1"
+          id="Layer_1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          viewBox="0 0 496 496"
+          xml:space="preserve"
+        >
+          <circle style="fill: #383a39" cx="248" cy="24" r="24" />
+          <circle style="fill: #eceeee" cx="248" cy="472" r="24" />
+          <circle style="fill: #77807f" cx="136" cy="53.6" r="24" />
+          <path
+            style="fill: #f2f4f4"
+            d="M380.8,430.4c6.4,11.2,2.4,25.6-8.8,32.8c-11.2,6.4-25.6,2.4-32.8-8.8c-6.4-11.2-2.4-25.6,8.8-32.8
+    C359.2,415.2,374.4,419.2,380.8,430.4z"
+          />
+          <path
+            style="fill: #9faaa9"
+            d="M65.6,115.2c11.2,6.4,15.2,20.8,8.8,32.8c-6.4,11.2-20.8,15.2-32.8,8.8c-11.2-6.4-15.2-20.8-8.8-32.8
+    S54.4,108.8,65.6,115.2z"
+          />
+          <path
+            style="fill: #f2f7f7"
+            d="M454.4,339.2c11.2,6.4,15.2,20.8,8.8,32.8c-6.4,11.2-20.8,15.2-32.8,8.8
+    c-11.2-6.4-15.2-20.8-8.8-32.8C428,336.8,442.4,332.8,454.4,339.2z"
+          />
+          <circle style="fill: #b2bbba" cx="24" cy="248" r="24" />
+          <circle style="fill: #ffffff" cx="472" cy="248" r="24" />
+          <path
+            style="fill: #c5cccb"
+            d="M41.6,339.2c11.2-6.4,25.6-2.4,32.8,8.8c6.4,11.2,2.4,25.6-8.8,32.8c-11.2,6.4-25.6,2.4-32.8-8.8
+    S30.4,346.4,41.6,339.2z"
+          />
+          <path
+            d="M430.4,115.2c11.2-6.4,25.6-2.4,32.8,8.8c6.4,11.2,2.4,25.6-8.8,32.8c-11.2,6.4-25.6,2.4-32.8-8.8
+    C415.2,136.8,419.2,121.6,430.4,115.2z"
+          />
+          <path
+            style="fill: #d9dddd"
+            d="M115.2,430.4c6.4-11.2,20.8-15.2,32.8-8.8c11.2,6.4,15.2,20.8,8.8,32.8c-6.4,11.2-20.8,15.2-32.8,8.8
+    C112.8,456,108.8,441.6,115.2,430.4z"
+          />
+          <path
+            style="fill: #111111"
+            d="M339.2,41.6c6.4-11.2,20.8-15.2,32.8-8.8c11.2,6.4,15.2,20.8,8.8,32.8c-6.4,11.2-20.8,15.2-32.8,8.8
+    C336.8,68,332.8,53.6,339.2,41.6z"
+          />
+        </svg>
+      </div>
+      <h3>Simulação do seu investimento</h3>
+      <div class="resultados-topo">
+        <div>
+          <span class="titulo">Investimento</span>
+          <span id="investimento-inicial" class="saida"></span>
+        </div>
+        <div>
+          <span class="titulo">Prazo </span>
+          <span id="tempo-escolhido" class="saida"></span>
+          <!-- <h4 id="prazo-escolhido" style="color: var(--primaria)"></h4> -->
+        </div>
+        <div class="taxa-ano">
+          <span class="titulo">Taxa</span>
+          <span class="saida" id="taxa-juros"></span>
+        </div>
+      </div>
+
+      <div class="rendimento-total" id="resultado-total">
+        <div class="tabela">
+          <span class="tabela-title">Rendimento</span>
+          <span class="tabela-result" id="tx-juros-total"></span>
+          <span class="tabela-title">Retorno Total Bruto</span>
+          <span class="tabela-result" id="mostra-total"></span>
+          <span class="tabela-title">Imposto de Renda Total</span>
+          <span class="tabela-result" id="imposto-renda-total"></span>
+          <span class="tabela-title">Você receberá no final do contrato</span>
+          <span class="tabela-result" id="resultado-investimento"></span>
+          <span class="tabela-title"
+            >Seu investimento renderá no prazo do contrato</span
+          >
+          <span class="tabela-result" id="comparativo-composto"></span>
+        </div>
+      </div>
+      <div class="rendimento-mensal" id="resultado-mensal">
+        <div class="tabela" id="tabela-mensal">
+          <span class="tabela-title">Rendimento</span>
+          <span class="tabela-result" id="juros-total"></span>
+          <div class="tabela-title rendimento-final parcelas">
+            <span>Você receberá</span>
+            <span>Resgate do investimento e rentabilidade</span>
+          </div>
+          <div class="tabela-result parcelas">
+            <span id="parcelas-receber"></span>
+            <span id="parcela-final"></span>
+          </div>
+          <span class="tabela-title">Retorno Total Bruto</span>
+          <span class="tabela-result" id="retorno-bruto-mensal"></span>
+          <span class="tabela-title">Imposto de Renda Total</span>
+          <span class="tabela-result" id="imposto-renda-mensal"></span>
+          <span class="tabela-title"
+            >Seu investimento renderá no prazo do contrato</span
+          >
+          <span class="mostra-mensal tabela-result" id="mostra-mensal"></span>
+        </div>
+      </div>
+
+      <div class="btn-boxes">
+        <button id="btn-retorna" onclick="retorna()" class="btn-final retorna">
+          Refazer simulação
+        </button>
+        <a
+          href="https://cubby.peakinvest.com.br/investidor/cadastro"
+          target="_blank"
+          ><button id="contatar" class="btn-final">Criar Conta</button></a
+        >
+      </div>
+      <p>
+        *Os valores dessa simulação poderão sofrer alterações conforme o período
+        e comportamento do mercado. *Para sua conveniência, o IR será recolhido
+        diretamente na fonte, através da Instituição Financeira e descontado do
+        pagamento das parcelas mensais a partir do ganho de capital sob tabela
+        de IR Regressiva. *No caso de resgates de capital antes do prazo
+        contratado, será aplicada a dedução do custo de emissão do título e do
+        Imposto sobre Operações Financeiras (IOF). *Qualquer investimento em
+        Renda Fixa Privada deve ser realizado exclusivamente por meio da
+        plataforma disponibilizada pela Cubby, acessível em
+        <a href="https://cubby.peakinvest.com.br" target="_blank"
+          >www.cubby.peakinvest.com.br</a
+        >, e os recursos devem ser alocados na conta de investimentos em nome do
+        banco emissor do título, Peak Invest Serviços Financeiros S.A.,
+        diretamente a partir da conta do titular.
+      </p>
+    </div>
+    <script>
+      //Seleciona os elementos do DOM ao início
+      let contrato = document.querySelector('#contrato')
+      const investimento = document.querySelector('#valor-investimento')
+      const prazo = document.querySelector('#prazo')
+      const resultadoInvestimento = document.querySelector(
+        '#resultado-investimento'
+      )
+      const invInicial = document.querySelector('#invInicial')
+      const resultPopUp = document.querySelector('#resultados') //div
+      const tempoEscolhido = document.querySelector('#tempo-escolhido')
+      const switchTotal = document.querySelector('#switch-total')
+      const switchMensal = document.querySelector('#switch-mensal')
+      const botaoRetorna = document.querySelector('#btn-retorna')
+      const botaoMais = document.querySelector('#btn-mais')
+      const botaoMenos = document.querySelector('#btn-menos')
+
+      //resultados apresentados após a simulação
+      const mesesTxt = document.querySelector('#sai-prazo')
+      const mostraInvestimentoInicial = document.querySelector(
+        '#investimento-inicial'
+      )
+      const resultadoTotal = document.querySelector('#resultado-total')
+      const resultadoMensal = document.querySelector('#resultado-mensal')
+      const mostraTotal = document.querySelector('#mostra-total')
+      const mostraMensal = document.querySelector('#mostra-mensal')
+      const taxaJuros = document.querySelector('#taxa-juros')
+      const parcelasReceber = document.querySelector('#parcelas-receber')
+      const parcelaFinal = document.querySelector('#parcela-final')
+      const mostraTaxaAnual = document.querySelector('#juros-total')
+      const mostraTotalIR = document.querySelector('#imposto-renda-mensal')
+      const mostraIRCompostos = document.querySelector('#imposto-renda-total')
+      const comparativoComposto = document.querySelector(
+        '#comparativo-composto'
+      )
+      const txJurosCompostos = document.querySelector('#tx-juros-total')
+      const retornoBrutoSimples = document.querySelector(
+        '#retorno-bruto-mensal'
+      )
+      const botao = document.querySelector('#btn-simular')
+
+      let valorInvestimento = parseFloat(investimento.value)
+      let prazoEmMeses = parseFloat(12)
+      let tipoContrato = '1'
+      let indiceMes = 1
+      let i = 1
+      let impostoDeRenda = 0.225
+      const custoEmissao = 0.0188
+      const iofTax = 0.01
+
+      let temporizador
+      function aumentaInvestimento() {
+        if (window.innerWidth > 1024) {
+          investimento.value = new Number(
+            parseFloat(investimento.value) + 10000
+          )
+          aumentoTemporizador = setTimeout(aumentaInvestimento, 500) // Aumentar a cada 200 milissegundos
+          formataMascara()
+          simular()
+        } else {
+          investimento.value = new Number(
+            parseFloat(investimento.value) + 10000
+          )
+          formataMascara()
+          simular()
+        }
+      }
+
+      function pararAumentoInvestimento() {
+        clearTimeout(aumentoTemporizador)
+      }
+
+      function reduzInvestimento() {
+        if ((investimento.value > 20000) & (window.innerHeight > 1025)) {
+          investimento.value = new Number(
+            parseFloat(investimento.value) - 10000
+          )
+          aumentoTemporizador = setTimeout(reduzInvestimento, 500) // Aumentar a cada 200 milissegundos
+          formataMascara()
+          simular()
+        } else if (investimento.value > 20000) {
+          investimento.value = new Number(
+            parseFloat(investimento.value) - 10000
+          )
+          formataMascara()
+          simular()
+        }
+      }
+
+      function pararReducaoInvestimento() {
+        clearTimeout(aumentoTemporizador)
+      }
+      // Atualiza o resultado quando o valor do investimento, o prazo ou contrato for alterado
+
+      investimento.addEventListener('change', simular)
+      investimento.addEventListener('change', mostraMask)
+      prazo.addEventListener('change', simular)
+      contrato.addEventListener('change', simular)
+
+      // Listener de aumento e redução pelos botões
+      // Aumenta
+      botaoMais.addEventListener('mousedown', aumentaInvestimento)
+      botaoMais.addEventListener('mouseup', pararAumentoInvestimento)
+      botaoMais.addEventListener('mouseout', pararAumentoInvestimento)
+      // Reduz
+      botaoMenos.addEventListener('mousedown', reduzInvestimento)
+      botaoMenos.addEventListener('mouseup', pararReducaoInvestimento)
+      botaoMenos.addEventListener('mouseout', pararReducaoInvestimento)
+
+      //Escolha do tipo de rentabilidade, mensal ou ao final do contrato, sendo '1' Mensal e '2' Ao final
+      function contrato1() {
+        tipoContrato = '1'
+        switchMensal.classList.add('ativo')
+        switchTotal.classList.add('inativo')
+        switchTotal.classList.remove('ativo')
+        simular()
+      }
+      function contrato2() {
+        tipoContrato = '2'
+        switchTotal.classList.add('ativo')
+        switchMensal.classList.add('inativo')
+        switchMensal.classList.remove('ativo')
+        simular()
+      }
+
+      function calcular() {
+        resultPopUp.style.animation = 'aumenta 250ms ease-out forwards'
+        resultPopUp.style.display = 'flex'
+      }
+
+      //Inicia algum cálculos simples
+      function simular() {
+        if (investimento.value < 20000) {
+          investimento.value = 20000
+        }
+        //Analisa a opção de contrato desejado pelo usuário
+        if (tipoContrato === '1') {
+          console.log('Rentabilidade Mensal')
+          jurosSimples()
+        } else if (tipoContrato === '2') {
+          console.log('Rentabilidade Total')
+          jurosCompostos()
+        }
+
+        tempoEscolhido.innerHTML = prazoEmMeses + ' meses'
+      }
+      // Cálculo do Juros Simples
+
+      function jurosSimples() {
+        impostoDeRenda = 0.225
+        valorInvestimento = investimento.value
+        prazoEmMeses = prazo.value
+        let valorInvestimentoSemTaxas =
+          valorInvestimento * (1 - iofTax - custoEmissao)
+        let montante
+        let taxaDeJurosMensal
+        let taxaDeJurosAnual
+        calculoParcelas = prazoEmMeses - 1
+        let impostoDeRendaTotal = 0
+
+        // Tabela de taxa por valor investido
+        if (valorInvestimento > 1000000) {
+          taxaDeJurosMensal = 0.0195
+          taxaDeJurosAnual = 0.2387
+        } else if (valorInvestimento > 200000) {
+          taxaDeJurosMensal = 0.0189
+          taxaDeJurosAnual = 0.2242
+        } else if (valorInvestimento > 30000) {
+          taxaDeJurosMensal = 0.018
+          taxaDeJurosAnual = 0.216
+        } else {
+          taxaDeJurosMensal = 0.017
+          taxaDeJurosAnual = 0.204
+        }
+
+        //Calcula os juros simples
+
+        let rendimentoAcumulado = 0
+        let impostoRendaAcumulado = 0
+        let rendimentoAcumuladoSemDesconto = 0
+        let parcelaUm =
+          valorInvestimentoSemTaxas * taxaDeJurosMensal * (1 - impostoDeRenda)
+        for (indiceMes = 1; indiceMes <= prazoEmMeses; indiceMes++) {
+          //tabela de imposto de renda regressivo
+          if (indiceMes >= 24) {
+            impostoDeRenda = 0.15
+          } else if (indiceMes >= 12) {
+            impostoDeRenda = 0.175
+          } else if (indiceMes > 5) {
+            impostoDeRenda = 0.2
+          }
+
+          //calcula o rendimento líquido do mês
+          let mes = []
+          mes[indiceMes] =
+            valorInvestimentoSemTaxas * taxaDeJurosMensal * (1 - impostoDeRenda)
+
+          let rendimentoMesSemDesconto = []
+          rendimentoMesSemDesconto[indiceMes] =
+            valorInvestimentoSemTaxas * taxaDeJurosMensal
+
+          //rendimento total acumulado descontado do imposto de renda
+          rendimentoAcumulado = rendimentoAcumulado + mes[indiceMes]
+
+          //Rendimento total acumulado sem desconto
+          rendimentoAcumuladoSemDesconto =
+            rendimentoAcumuladoSemDesconto + rendimentoMesSemDesconto[indiceMes]
+
+          //calcula o imposto do mês
+          let impostoMes = [indiceMes]
+          impostoMes[indiceMes] =
+            valorInvestimento * taxaDeJurosMensal * impostoDeRenda
+
+          // Calcula o imposto de renda total
+          impostoDeRendaTotal = impostoDeRendaTotal += impostoMes[indiceMes]
+
+          //calculo da porcentagem final de rendimento
+          porcentagemFinal = (rendimentoAcumulado / valorInvestimento) * 100
+
+          let ultimaParcela =
+            parseInt(valorInvestimento) +
+            parseFloat(
+              valorInvestimento * taxaDeJurosMensal * (1 - impostoDeRenda)
+            )
+
+          //apresenta informações
+          // CONSOLE LOGS PARA CAPTURA DE ERROS
+
+          /* console.log(impostoDeRendaTotal)
+            console.log(valorInvestimento)
+            console.log(valorInvestimentoSemTaxas)
+            console.log(taxaDeJurosAnual)
+            console.log(taxaDeJurosMensal)
+            console.log(`No mês ${indiceMes}, o valor é: ${mes[indiceMes]}`)
+            console.log(
+              `No Mês ${indiceMes}, o imposto de renda é de: ${impostoMes[indiceMes]}`
+            )
+            console.log(`Rendimento Acumulado é de : ${rendimentoAcumulado}`)*/
+
+          // MOSTRA O VALOR DE INVESTIMENTO INICIAL NA PARTE SUPERIOR
+          mostraInvestimentoInicial.innerHTML = `${Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(parseFloat(valorInvestimento).toFixed(2))}`
+
+          // RESULTADOS DA TABELA INFERIOR
+          //mostra o número de parcelas e o valor do rendimento já descontado de imposto de renda na tabela
+          parcelasReceber.textContent = `${calculoParcelas} parcelas de ${new Intl.NumberFormat(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          ).format(parcelaUm)}`
+
+          //Apresenta a última parcela com a rentabilidade
+          parcelaFinal.textContent = `${new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(ultimaParcela)}`
+
+          //Taxa de Juros a ser apresentada no box de resultados superiores
+          taxaJuros.textContent = `${(taxaDeJurosMensal * 100).toLocaleString(
+            'pt-BR',
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}% a.m.`
+
+          //Mostra a rentabilidade final em % na tabela
+          mostraMensal.textContent = `${porcentagemFinal.toLocaleString(
+            'pt-br',
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}%`
+
+          //apresenta a soma do total de imposto de renda detido
+          mostraTotalIR.textContent = `${impostoDeRendaTotal.toLocaleString(
+            'pt-br',
+            {
+              style: 'currency',
+              currency: 'BRL',
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 2
+            }
+          )}`
+
+          //Mostra o Rendimento Bruto no plano Mensal
+          retornoBrutoSimples.textContent = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }).format(rendimentoAcumuladoSemDesconto)
+
+          //Mostra a taxa de Juros anual na tabela de resultados
+          mostraTaxaAnual.textContent = `${(
+            taxaDeJurosAnual * 100
+          ).toLocaleString('pt-br', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}% ao ano`
+        }
+        console.log('Cálculo Feito!')
+        resultadoTotal.style.display = 'none'
+        resultadoMensal.style.display = 'flex'
+      }
+
+      //Cálculo dos Juros Compostos
+      function jurosCompostos() {
+        valorInvestimento = investimento.value
+        prazoEmMeses = prazo.value
+        let i
+        impostoDeRenda = 0.175
+        const custoEmissao = 0.0188
+        const iofTax = 0.01
+        let valorInvestimentoSemTaxas =
+          valorInvestimento * (1 - iofTax - custoEmissao)
+        let montante
+        let taxaDeJurosMensal
+        let taxaDeJurosAnual
+
+        // Tabela do Imposto de Renda
+        if (prazoEmMeses >= 24) {
+          impostoDeRenda = 0.15
+        } else impostoDeRenda = 0.175
+        // Tabela de taxa por valor investido
+        if (valorInvestimento > 1000000) {
+          taxaDeJurosMensal = 0.0195
+          taxaDeJurosAnual = 0.2519
+        } else if (valorInvestimento > 200000) {
+          taxaDeJurosMensal = 0.0189
+          taxaDeJurosAnual = 0.2387
+        } else if (valorInvestimento > 30000) {
+          taxaDeJurosMensal = 0.018
+          taxaDeJurosAnual = 0.2387
+        } else {
+          taxaDeJurosMensal = 0.017
+          taxaDeJurosAnual = 0.2242
+        }
+
+        montante = valorInvestimentoSemTaxas
+        // Cálculo dos Juros Compostos
+        for (i = 1; i <= prazoEmMeses; i++) {
+          const rentabilidadeMensal = montante * taxaDeJurosMensal
+          montante = montante + rentabilidadeMensal
+        }
+        if ((i = prazoEmMeses)) {
+          const rentabilidadeBrutaAoFinal = montante - valorInvestimentoSemTaxas
+          const montanteDescontado =
+            rentabilidadeBrutaAoFinal * (1 - impostoDeRenda)
+
+          //
+          let rendimentoTotal =
+            parseFloat(valorInvestimento) +
+            parseFloat(rentabilidadeBrutaAoFinal)
+          //
+          const comparativoCompostoFinal =
+            (montanteDescontado / valorInvestimento) * 100
+
+          impostoDeRendaCompostoFinal =
+            rentabilidadeBrutaAoFinal - montanteDescontado
+
+          let montanteFinal = rendimentoTotal - impostoDeRendaCompostoFinal
+          // Apresenta os Resultados
+
+          // CONSOLE LOGS PARA CAPTURA DE ERROS
+          console.log('Cálculo Feito!')
+          /*
+            console.log(
+              `Montante: ${Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(montante.toFixed(2))}`
+            )
+            console.log(
+              `Rentabilidade bruta: ${Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(rentabilidadeBrutaAoFinal.toFixed(2))}`
+            )
+            console.log(
+              `Rentabilidade líquida: ${Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(montanteDescontado.toFixed(2))}`
+            )
+            console.log(
+              `Taxa de Juros Mensal: ${(taxaDeJurosMensal * 100).toFixed(2)}`
+            )
+            console.log(
+              `Taxa de Juros Anual: ${(taxaDeJurosAnual * 100).toFixed(2)}`
+            )
+            console.log(`Rendimento de ${comparativoCompostoFinal.toFixed(2)}%`)*/
+
+          ///////////////////////////////////////////////////////////
+          // MOSTRA O VALOR DE INVESTIMENTO INICIAL NA PARTE SUPERIOR
+          mostraInvestimentoInicial.innerHTML = `${Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(parseFloat(valorInvestimento).toFixed(2))}`
+
+          taxaJuros.textContent = `${(taxaDeJurosMensal * 100).toLocaleString(
+            'pt-BR',
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}% a.m.`
+
+          // Mostra a taxa de juros anual na tabela
+          txJurosCompostos.innerHTML =
+            (taxaDeJurosAnual * 100).toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) + '% ao ano'
+
+          //exibe o retorno total bruto na tabela
+          mostraTotal.textContent = `${rentabilidadeBrutaAoFinal.toLocaleString(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}`
+
+          //Exibe o valor do imposto de renda total na tabela de resultados
+          mostraIRCompostos.textContent = `${impostoDeRendaCompostoFinal.toLocaleString(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}`
+
+          resultadoInvestimento.textContent = `${montanteFinal.toLocaleString(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}`
+
+          //Mostra a rentabilidade final em % na tabela
+          comparativoComposto.textContent = `${comparativoCompostoFinal.toLocaleString(
+            'pt-br',
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          )}%`
+        }
+        resultadoMensal.style.display = 'none'
+
+        resultadoTotal.style.display = 'flex'
+      }
+
+      //Refazer a simulação
+      function retorna() {
+        resultPopUp.style.display = 'none'
+        indiceMes = 1
+        i = 1
+      }
+      let mascara = document.querySelector('#mascara')
+      mascara.textContent = `${Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(parseFloat(investimento.value).toFixed(2))}`
+
+      function formataMascara() {
+        mascara.textContent = `${new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(parseFloat(investimento.value).toFixed(2))}`
+      }
+      investimento.addEventListener('change', formataMascara)
+
+      mascara.addEventListener('click', escondeMask)
+
+      function escondeMask() {
+        mascara.style.display = 'none'
+      }
+      function mostraMask() {
+        mascara.style.display = 'block'
+      }
+    </script>
+  </body>
+</html>
